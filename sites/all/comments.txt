@@ -1,0 +1,6 @@
+#Edited by Noam Herz.
+
+1. Create folder "C:\wamp\www\drupal-signature\sites\all\libraries\signature-pad\build" and copy to the folder
+jquery.signaturepad.js
+jquery.signaturepad.min.js
+

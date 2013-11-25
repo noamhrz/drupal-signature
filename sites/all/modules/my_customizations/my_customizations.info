@@ -1,0 +1,10 @@
+name = My customization
+description = custimzation for my site
+core = 7.x
+
+package = "custom stuff"
+dependencies[] = ctools
+dependencies[] = views
+dependencies[] = less
+
+stylesheets[all][] = general.css.less

@@ -1,0 +1,48 @@
+<?php
+
+/* 
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+function my_customizations_form_alter(&$form, &$form_state, $form_id) {
+  //dsm($form_id);  // print form ID to messages
+  //dsm($form);  // pretty print array using Krumo to messages
+}
+
+
+
+function my_customizations_form_waiver_form_node_form_alter(&$form, &$form_state, $form_id) {
+  //dsm($form_id);  // print form ID to messages
+  dsm($form);  // pretty print array using Krumo to messages
+  $form['#prefix'] = "<div>noam</div>";
+    
+}
+
+function my_customizations_menu(){
+    $items = array();
+    $items['new-waiver'] = array(
+        'title' => t("Create new waiver for your business"),
+        'description' => "",
+        'page callback' => 'drupal_get_form',
+        'page_argument' => array('my_customizations_my_form'),
+        'access callback' => true,
+    );
+    return $items;
+}
+
+
+
+function my_customizations_my_form($form_id) {
+  $form_state = array();
+
+  $args = func_get_args();
+  // Remove $form_id from the arguments.
+  array_shift($args);
+  $form_state['build_info']['args'] = $args;
+
+  return drupal_build_form($form_id, $form_state);
+
+}
+  

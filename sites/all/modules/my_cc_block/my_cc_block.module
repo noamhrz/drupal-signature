@@ -14,7 +14,7 @@ function my_cc_block_block_view($delta = '') {
     $block = array();
     switch ($delta) {
         case 'new_waiver':
-            $block['subject'] = t('Block Name');
+            $block['subject'] = t('Protect your business by waiver');
             $block['content'] = drupal_get_form('new_waiver_form');
             break;
     }
@@ -39,6 +39,18 @@ function new_waiver_form($form, &$form_state) {
         // Optional description
         '#description' => t('Must be a unique name'),
     );
+    
+    $form['statement'] = array(
+        // #type tells drupal what kind of element to build
+        '#type' => 'textarea',
+        // we want this field to be required
+        '#required' => TRUE,
+        // The "label" for this field
+        '#title' => t("Your statement for the waiver"),
+        // Optional description
+        '#description' => t('what your customer will sign about'),
+    );
+
 
     $form['submit'] = array(
         '#type' => 'submit',
@@ -54,16 +66,17 @@ function new_waiver_form($form, &$form_state) {
  * automatically call when the submit button is pressed.
  * 
  */
+
 function new_waiver_form_validate($form, &$form_state) {
     // Drupal stows away all of the form elements into
     // $form_state['values'].  We find our 'waiver_name'
     // element and assign it to a variable for easy
     // reference.
     $waiver_name = $form_state['values']['waiver_name'];
-    
+
     // Check if the content type name is already exists.
     if (in_array('waiver_' . $waiver_name, node_type_get_names())) {
-        form_set_error('waiver_name', $waiver_name . ' '. t('Is already exists'));
+        form_set_error('waiver_name', $waiver_name . ' ' . t('Is already exists'));
     }
 }
 
@@ -71,23 +84,171 @@ function new_waiver_form_validate($form, &$form_state) {
  * Define a submit funciton that drupal will
  * automatically call when submit is pressed (and all validators pass)
  */
+
 function new_waiver_form_submit($form, &$form_state) {
-        $waiver_name = $form_state['values']['waiver_name'];
-        // machine name of the content type
-        $name = 'waiver_' . $waiver_name;
+    $waiver_name = $form_state['values']['waiver_name'];
+    $statement  = $form_state['values']['statement'];
+    // machine name of the content type
+    $name = 'waiver_' . $waiver_name;
 
-        // define the node type
-        $new_node = array(
-            'type' => $name,
-            'name' => $name,
-            'base' => 'node_content',
-            'title_label' => t($waiver_name),
-            'description' => t('simple waiver'),
-            'custom' => TRUE,
-        );
+    // define the node type
+    $new_node = array(
+        'type' => $name,
+        'name' => $name,
+        'base' => 'node_content',
+        'title_label' => t(' name'),
+        'description' => t('simple waiver'),
+        'custom' => TRUE,
+    );
 
-        // create new content type and save it.
-        $content_type = node_type_set_defaults($new_node);
-        node_type_save($content_type);
-        drupal_set_message(t('content type name ') . $name .' ' . t('has created, lets go edit it!'));
+    node_type_save($new_node);
+
+    // create all our custom fields
+//    foreach (_foo_custom_fields() /* See notes below. */ as $field) {
+//        field_create_field($field);
+//    }
+
+    // create all the instances for our fields
+    foreach (example_waiver_field_default_field_instances($statement) /* See notes below. */ as $instance) {
+        $instance['entity_type'] = 'node';
+        $instance['bundle'] = $name;
+        field_create_instance($instance);
+    }
+
+
+
+
+    /**
+     * Add the role when need.
+      $role = new stdClass();
+      $role_name = $name . '_editor';
+      $role->name = $role_name;
+      user_role_save($role);
+
+      $permissions = array(
+      'administer nodes' => 0, // Revoke 'administer nodes'
+      'administer blocks' => FALSE, // Revoke 'administer blocks'
+      'access user profiles' => 1, // Grant 'access user profiles'
+      'access content' => TRUE, // Grant 'access content'
+      'access comments' => 'access comments', // Grant 'access comments'
+      );
+
+      user_role_change_permissions($role->rid, $permissions);
+
+      //user_role_grant_permissions($role->rid, array_keys(module_invoke_all($name . ': Create new content')));
+
+      global $user;
+      $key = array_search($role_name, $user->roles);
+      if ($key == FALSE) {
+      $roles = user_roles(TRUE);
+      $rid = array_search($role_name, $roles);
+      if ($rid != FALSE) {
+      $new_role[$rid] = $role_name;
+      user_save($user, array('roles' => $new_role));
+      }
+      }
+     * 
+     */
 }
+
+
+function example_waiver_field_default_field_instances($statement = '') {
+  $field_instances = array();
+
+  // Exported field_instance: 'node-example_waiver-field_readonly_body'
+  $field_instances['node-example_waiver-field_readonly_body'] = array(
+    'bundle' => 'example_waiver',
+    'default_value' => array(
+      0 => array(
+        'value' => $statement,
+      ),
+    ),
+    'deleted' => 0,
+    'description' => '',
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_default',
+        'weight' => 2,
+      ),
+      'teaser' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => 0,
+      ),
+    ),
+    'entity_type' => 'node',
+    'field_name' => 'field_readonly_body',
+    'label' => '',
+    'required' => 1,
+    'settings' => array(
+      'text_processing' => 0,
+      'user_register_form' => FALSE,
+    ),
+    'widget' => array(
+      'active' => 1,
+      'module' => 'text',
+      'settings' => array(
+        'rows' => 5,
+      ),
+      'type' => 'text_textarea',
+      'weight' => 0,
+    ),
+  );
+  
+    // Exported field_instance: 'node-example_waiver-field_personal_signature'
+  $field_instances['node-example_waiver-field_personal_signature'] = array(
+    'bundle' => 'example_waiver',
+    'default_value' => array(
+      0 => array(
+        'data' => 'a:2:{s:4:"json";s:2:"[]";s:8:"filepath";s:43:"public://signaturefield//13853940068752.png";}',
+      ),
+    ),
+    'deleted' => 0,
+    'description' => '',
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'module' => 'signaturefield',
+        'settings' => array(),
+        'type' => 'signaturefield_formatter',
+        'weight' => 1,
+      ),
+      'teaser' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => 0,
+      ),
+    ),
+    'entity_type' => 'node',
+    'field_name' => 'field_personal_signature',
+    'label' => 'Personal signature',
+    'required' => 1,
+    'settings' => array(
+      'user_register_form' => FALSE,
+    ),
+    'widget' => array(
+      'active' => 1,
+      'module' => 'signaturefield',
+      'settings' => array(
+        'color' => '000033',
+        'height' => 99,
+        'width' => 200,
+      ),
+      'type' => 'signaturefield_default',
+      'weight' => 2,
+    ),
+  );
+
+  // Translatables
+  // Included for use with string extractors like potx.
+  t('Personal signature');
+  t('הצהרה');
+
+  return $field_instances;
+}
+

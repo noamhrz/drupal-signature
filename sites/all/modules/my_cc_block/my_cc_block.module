@@ -1,158 +1,104 @@
 <?php
 
+/**
+ * Declaring the block.
+ */
 function my_cc_block_block_info() {
-    $blocks['new_waiver'] = array(
-        'info' => t('New waiver block'),
-    );
-    return $blocks;
+  $blocks['new_waiver'] = array(
+    'info' => t('New waiver block'),
+  );
+  return $blocks;
 }
 
 /**
  * Implementation of hook_block_view().
  */
 function my_cc_block_block_view($delta = '') {
-    $block = array();
-    switch ($delta) {
-        case 'new_waiver':
-            $block['subject'] = t('Protect your business by waiver');
-            $block['content'] = drupal_get_form('new_waiver_form');
-            break;
-    }
-    return $block;
+  $block = array();
+  switch ($delta) {
+    case 'new_waiver':
+      $block['subject'] = t('Protect your business by waiver');
+      $block['content'] = drupal_get_form('_my_cc_block_new_waiver_form');
+      break;
+  }
+  return $block;
 }
 
 /**
- * 
- * @param type $form
- * @param type $form_state
- * @return type
  * Define a form for creating new waiver content type.
  */
-function new_waiver_form($form, &$form_state) {
-    $form['waiver_name'] = array(
-        // #type tells drupal what kind of element to build
-        '#type' => 'textfield',
-        // we want this field to be required
-        '#required' => TRUE,
-        // The "label" for this field
-        '#title' => t("Your new Waiver name"),
-        // Optional description
-        '#description' => t('Must be a unique name'),
-    );
-    
-    $form['statement'] = array(
-        // #type tells drupal what kind of element to build
-        '#type' => 'textarea',
-        // we want this field to be required
-        '#required' => TRUE,
-        // The "label" for this field
-        '#title' => t("Your statement for the waiver"),
-        // Optional description
-        '#description' => t('what your customer will sign about'),
-    );
+function _my_cc_block_new_waiver_form($form, &$form_state) {
+  // Waiver name field.
+  $form['waiver_name'] = array(
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#title' => t("Your new Waiver name"),
+    '#description' => t('Must be a unique name'),
+  );
 
+  // Waiver statement field
+  $form['statement'] = array(
+    '#type' => 'textarea',
+    '#required' => TRUE,
+    '#title' => t("Your statement for the waiver"),
+    '#description' => t('what your customer will sign about'),
+  );
 
-    $form['submit'] = array(
-        '#type' => 'submit',
-        // #value is the text to display inside the button
-        '#value' => t('Submit'),
-    );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    // #value is the text to display inside the button
+    '#value' => t('Submit'),
+  );
 
-    return $form;
+  return $form;
 }
 
 /*
  * Define a validation function that drupal will
  * automatically call when the submit button is pressed.
- * 
  */
+function _my_cc_block_new_waiver_form_validate($form, &$form_state) {
+  
+  $waiver_name = $form_state['values']['waiver_name'];
 
-function new_waiver_form_validate($form, &$form_state) {
-    // Drupal stows away all of the form elements into
-    // $form_state['values'].  We find our 'waiver_name'
-    // element and assign it to a variable for easy
-    // reference.
-    $waiver_name = $form_state['values']['waiver_name'];
-
-    // Check if the content type name is already exists.
-    if (in_array('waiver_' . $waiver_name, node_type_get_names())) {
-        form_set_error('waiver_name', $waiver_name . ' ' . t('Is already exists'));
-    }
+  // Check if the content type name is already exists.
+  if (in_array('waiver_' . $waiver_name, node_type_get_names())) {
+    form_set_error('waiver_name', $waiver_name . ' ' . t('Is already exists'));
+  }
 }
 
 /*
  * Define a submit funciton that drupal will
  * automatically call when submit is pressed (and all validators pass)
  */
+function _my_cc_block_new_waiver_form_submit($form, &$form_state) {
+  $waiver_name = $form_state['values']['waiver_name'];
+  $statement = $form_state['values']['statement'];
+  
+  // machine name of the content type
+  $name = 'waiver_' . $waiver_name;
 
-function new_waiver_form_submit($form, &$form_state) {
-    $waiver_name = $form_state['values']['waiver_name'];
-    $statement  = $form_state['values']['statement'];
-    // machine name of the content type
-    $name = 'waiver_' . $waiver_name;
+  // define the node type
+  $new_node = array(
+    'type' => $name,
+    'name' => $name,
+    'base' => 'node_content',
+    'title_label' => t(' name'),
+    'description' => t('simple waiver'),
+    'custom' => TRUE,
+  );
 
-    // define the node type
-    $new_node = array(
-        'type' => $name,
-        'name' => $name,
-        'base' => 'node_content',
-        'title_label' => t(' name'),
-        'description' => t('simple waiver'),
-        'custom' => TRUE,
-    );
+  node_type_save($new_node);
 
-    node_type_save($new_node);
-
-    // create all our custom fields
-//    foreach (_foo_custom_fields() /* See notes below. */ as $field) {
-//        field_create_field($field);
-//    }
-
-    // create all the instances for our fields
-    foreach (example_waiver_field_default_field_instances($statement) /* See notes below. */ as $instance) {
-        $instance['entity_type'] = 'node';
-        $instance['bundle'] = $name;
-        field_create_instance($instance);
-    }
-
-
-
-
-    /**
-     * Add the role when need.
-      $role = new stdClass();
-      $role_name = $name . '_editor';
-      $role->name = $role_name;
-      user_role_save($role);
-
-      $permissions = array(
-      'administer nodes' => 0, // Revoke 'administer nodes'
-      'administer blocks' => FALSE, // Revoke 'administer blocks'
-      'access user profiles' => 1, // Grant 'access user profiles'
-      'access content' => TRUE, // Grant 'access content'
-      'access comments' => 'access comments', // Grant 'access comments'
-      );
-
-      user_role_change_permissions($role->rid, $permissions);
-
-      //user_role_grant_permissions($role->rid, array_keys(module_invoke_all($name . ': Create new content')));
-
-      global $user;
-      $key = array_search($role_name, $user->roles);
-      if ($key == FALSE) {
-      $roles = user_roles(TRUE);
-      $rid = array_search($role_name, $roles);
-      if ($rid != FALSE) {
-      $new_role[$rid] = $role_name;
-      user_save($user, array('roles' => $new_role));
-      }
-      }
-     * 
-     */
+  // create all the instances for our fields
+  foreach (_my_cc_block_field_instances($statement) /* See notes below. */ as $instance) {
+    $instance['entity_type'] = 'node';
+    $instance['bundle'] = $name;
+    field_create_instance($instance);
+  }
 }
 
-
-function example_waiver_field_default_field_instances($statement = '') {
+function _my_cc_block_field_instances($statement = '') {
   $field_instances = array();
 
   // Exported field_instance: 'node-example_waiver-field_readonly_body'
@@ -198,8 +144,8 @@ function example_waiver_field_default_field_instances($statement = '') {
       'weight' => 0,
     ),
   );
-  
-    // Exported field_instance: 'node-example_waiver-field_personal_signature'
+
+  // Exported field_instance: 'node-example_waiver-field_personal_signature'
   $field_instances['node-example_waiver-field_personal_signature'] = array(
     'bundle' => 'example_waiver',
     'default_value' => array(
@@ -252,3 +198,42 @@ function example_waiver_field_default_field_instances($statement = '') {
   return $field_instances;
 }
 
+// Code examples
+
+    // create all our custom fields
+//    foreach (_foo_custom_fields() /* See notes below. */ as $field) {
+//        field_create_field($field);
+//    }
+
+
+    /**
+     * code example to add the role when need.
+      $role = new stdClass();
+      $role_name = $name . '_editor';
+      $role->name = $role_name;
+      user_role_save($role);
+
+      $permissions = array(
+      'administer nodes' => 0, // Revoke 'administer nodes'
+      'administer blocks' => FALSE, // Revoke 'administer blocks'
+      'access user profiles' => 1, // Grant 'access user profiles'
+      'access content' => TRUE, // Grant 'access content'
+      'access comments' => 'access comments', // Grant 'access comments'
+      );
+
+      user_role_change_permissions($role->rid, $permissions);
+
+      //user_role_grant_permissions($role->rid, array_keys(module_invoke_all($name . ': Create new content')));
+
+      global $user;
+      $key = array_search($role_name, $user->roles);
+      if ($key == FALSE) {
+      $roles = user_roles(TRUE);
+      $rid = array_search($role_name, $roles);
+      if ($rid != FALSE) {
+      $new_role[$rid] = $role_name;
+      user_save($user, array('roles' => $new_role));
+      }
+      }
+     * 
+     */

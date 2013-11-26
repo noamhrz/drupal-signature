@@ -117,7 +117,7 @@ function _my_cc_block_field_instances($statement = '') {
         'module' => 'text',
         'settings' => array(),
         'type' => 'text_default',
-        'weight' => 2,
+        'weight' => -6,
       ),
       'teaser' => array(
         'label' => 'above',
@@ -141,7 +141,7 @@ function _my_cc_block_field_instances($statement = '') {
         'rows' => 5,
       ),
       'type' => 'text_textarea',
-      'weight' => 0,
+      'weight' => -6,
     ),
   );
 

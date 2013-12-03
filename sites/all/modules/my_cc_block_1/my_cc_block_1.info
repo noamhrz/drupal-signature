@@ -1,0 +1,10 @@
+name = My cc block 1
+description = custimzation for my site
+core = 7.x
+
+package = "custom stuff"
+dependencies[] = ctools
+dependencies[] = views
+dependencies[] = less
+
+stylesheets[all][] = my_cc_block_1.css.less

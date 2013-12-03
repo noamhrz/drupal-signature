@@ -29,26 +29,28 @@ function my_cc_block_block_view($delta = '') {
  */
 function _my_cc_block_new_waiver_form($form, &$form_state) {
   // Waiver name field.
-  $form['waiver_name'] = array(
+  // TODO make this field appear only if the context is empty.
+
+    $form['waiver_name'] = array(
     '#type' => 'textfield',
     '#required' => TRUE,
     '#title' => t("Your new Waiver name"),
     '#description' => t('Must be a unique name'),
-  );
+    );
 
-  // Waiver statement field
-  $form['statement'] = array(
+    // Waiver statement field
+    $form['statement'] = array(
     '#type' => 'textarea',
     '#required' => TRUE,
     '#title' => t("Your statement for the waiver"),
     '#description' => t('what your customer will sign about'),
-  );
+    );
 
-  $form['submit'] = array(
+    $form['submit'] = array(
     '#type' => 'submit',
     // #value is the text to display inside the button
     '#value' => t('Submit'),
-  );
+    );
 
   return $form;
 }
@@ -57,8 +59,9 @@ function _my_cc_block_new_waiver_form($form, &$form_state) {
  * Define a validation function that drupal will
  * automatically call when the submit button is pressed.
  */
+
 function _my_cc_block_new_waiver_form_validate($form, &$form_state) {
-  
+
   $waiver_name = $form_state['values']['waiver_name'];
 
   // Check if the content type name is already exists.
@@ -71,10 +74,11 @@ function _my_cc_block_new_waiver_form_validate($form, &$form_state) {
  * Define a submit funciton that drupal will
  * automatically call when submit is pressed (and all validators pass)
  */
+
 function _my_cc_block_new_waiver_form_submit($form, &$form_state) {
   $waiver_name = $form_state['values']['waiver_name'];
   $statement = $form_state['values']['statement'];
-  
+
   // machine name of the content type
   $name = 'waiver_' . $waiver_name;
 
@@ -199,41 +203,41 @@ function _my_cc_block_field_instances($statement = '') {
 }
 
 // Code examples
-
-    // create all our custom fields
+  // create all our custom fields
 //    foreach (_foo_custom_fields() /* See notes below. */ as $field) {
 //        field_create_field($field);
 //    }
 
 
-    /**
-     * code example to add the role when need.
-      $role = new stdClass();
-      $role_name = $name . '_editor';
-      $role->name = $role_name;
-      user_role_save($role);
+  /**
+   * code example to add the role when need.
+    $role = new stdClass();
+    $role_name = $name . '_editor';
+    $role->name = $role_name;
+    user_role_save($role);
 
-      $permissions = array(
-      'administer nodes' => 0, // Revoke 'administer nodes'
-      'administer blocks' => FALSE, // Revoke 'administer blocks'
-      'access user profiles' => 1, // Grant 'access user profiles'
-      'access content' => TRUE, // Grant 'access content'
-      'access comments' => 'access comments', // Grant 'access comments'
-      );
+    $permissions = array(
+    'administer nodes' => 0, // Revoke 'administer nodes'
+    'administer blocks' => FALSE, // Revoke 'administer blocks'
+    'access user profiles' => 1, // Grant 'access user profiles'
+    'access content' => TRUE, // Grant 'access content'
+    'access comments' => 'access comments', // Grant 'access comments'
+    );
 
-      user_role_change_permissions($role->rid, $permissions);
+    user_role_change_permissions($role->rid, $permissions);
 
-      //user_role_grant_permissions($role->rid, array_keys(module_invoke_all($name . ': Create new content')));
+    //user_role_grant_permissions($role->rid, array_keys(module_invoke_all($name . ': Create new content')));
 
-      global $user;
-      $key = array_search($role_name, $user->roles);
-      if ($key == FALSE) {
-      $roles = user_roles(TRUE);
-      $rid = array_search($role_name, $roles);
-      if ($rid != FALSE) {
-      $new_role[$rid] = $role_name;
-      user_save($user, array('roles' => $new_role));
-      }
-      }
-     * 
-     */
+    global $user;
+    $key = array_search($role_name, $user->roles);
+    if ($key == FALSE) {
+    $roles = user_roles(TRUE);
+    $rid = array_search($role_name, $roles);
+    if ($rid != FALSE) {
+    $new_role[$rid] = $role_name;
+    user_save($user, array('roles' => $new_role));
+    }
+    }
+   * 
+   */
+  

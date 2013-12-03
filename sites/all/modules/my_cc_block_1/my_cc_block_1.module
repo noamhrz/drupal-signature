@@ -1,0 +1,465 @@
+<?php
+
+/**
+ * Declaring the block.
+ */
+function my_cc_block_1_block_info() {
+  $blocks['new_waiver'] = array(
+    'info' => t('New waiver block 1'),
+  );
+  return $blocks;
+}
+
+/**
+ * Implementation of hook_block_view().
+ */
+function my_cc_block_1_block_view($delta = '') {
+  $block = array();
+  switch ($delta) {
+    case 'new_waiver':
+      $block['subject'] = t('Multiple fields');
+      $block['content'] = drupal_get_form('_my_cc_block_1_new_waiver_form');
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Define a form for creating new waiver content type.
+ */
+function _my_cc_block_1_new_waiver_form($form, &$form_state) {
+  // We will have many fields with the same name, so we need to be able to
+  // access the form hierarchically.
+  $form['#tree'] = TRUE;
+
+  $form['description'] = array(
+    '#type' => 'item',
+    '#title' => t('A form with dynamically added new fields'),
+  );
+
+  $form['waiver_name'] = array(
+    '#type' => 'textfield',
+    '#required' => TRUE,
+    '#title' => t("Your new Waiver name"),
+    '#description' => t('Must be a unique name'),
+  );
+
+  // Waiver statement field
+  $form['statement'] = array(
+    '#type' => 'textarea',
+    '#required' => TRUE,
+    '#title' => t("Your statement for the waiver"),
+    '#description' => t('what your customer will sign about'),
+  );
+
+  if (empty($form_state['num_fields'])) {
+    $form_state['num_fields'] = 1;
+  }
+  
+  // Build the number of field fieldsets indicated by $form_state['num_fields']
+  for ($i = 1; $i <= $form_state['num_fields']; $i++) {
+    $form['field'][$i] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Field #@num', array('@num' => $i)),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+    );
+
+    $form['field'][$i]['label'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Label'),
+      '#description' => t("Enter label."),
+      '#size' => 20,
+      '#maxlength' => 20,
+      '#required' => TRUE,
+    );
+    $form['field'][$i]['is_requiered'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Required field?'),
+    );
+    $form['field'][$i]['field_type'] = array(
+       '#type' => 'select',
+       '#title' => t('Field type'),
+       '#required' => TRUE,
+       '#options' => array(
+          'text' => t('Textual'),
+          'integer' => t('Numeric'),
+          'date' => t('Date'),
+          'signature' => t('Signature'), 
+       ),
+    );
+  }
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Submit',
+  );
+
+  // Adds "Add another field" button
+  $form['add_field'] = array(
+    '#type' => 'submit',
+    '#value' => t('Add another field'),
+    '#submit' => array('_my_cc_block_1_add_field'),
+  );
+
+  // If we have more than one field, this button allows removal of the
+  // last field.
+  if ($form_state['num_fields'] > 1) {
+    $form['remove_field'] = array(
+      '#type' => 'submit',
+      '#value' => t('Remove latest field'),
+      '#submit' => array('_my_cc_block_1_remove_field'),
+      // Since we are removing a field, don't validate until later.
+      '#limit_validation_errors' => array(),
+    );
+  }
+  
+  return $form;
+}
+
+function _my_cc_block_1_new_waiver_form_validate($form, &$form_state) {
+  $waiver_name = $form_state['values']['waiver_name'];
+
+  // Check if the content type name is already exists.
+  if (in_array('waiver_' . $waiver_name, node_type_get_names())) {
+    form_set_error('waiver_name', $waiver_name . ' ' . t('Is already exists'));
+  }
+}
+
+function _my_cc_block_1_new_waiver_form_submit($form, &$form_state) {
+ /**
+  $output = t("Content type name: @cc_name;<br/> Declaration: @declaration;<br/>", array('@cc_name' => $form_state['values']['waiver_name'], '@declaration' => $form_state['values']['statement']));
+  for ($i = 1; $i <= $form_state['num_fields']; $i++) {
+    $output .= t("@num: label: @label, Requiered: @is_requiered, Type(@type)", array('@num' => $i, '@label' => $form_state['values']['field'][$i]['label'],
+      '@is_requiered' => $form_state['values']['field'][$i]['is_requiered'], '@type' => $form_state['values']['field'][$i]['field_type']));
+  }
+  drupal_set_message($output);
+  */
+  
+  $waiver_name = $form_state['values']['waiver_name'];
+  $statement = $form_state['values']['statement'];
+  $fields = $form_state['values']['field'];
+
+  // machine name of the content type
+  $name = 'waiver_' . $waiver_name;
+
+  // define the node type
+  $new_node = array(
+    'type' => $name,
+    'name' => $name,
+    'base' => 'node_content',
+    'title_label' => t(' name'),
+    'description' => t('simple waiver'),
+    'custom' => TRUE,
+  );
+
+  node_type_save($new_node);
+
+  // create all the instances for our fields
+  foreach (_my_cc_block_1_field_instances($statement, $fields) /* See notes below. */ as $instance) {
+    $instance['entity_type'] = 'node';
+    $instance['bundle'] = $name;
+    field_create_instance($instance);
+  }
+}
+
+function _my_cc_block_1_field_instances($statement = '', $fields = array()) {
+  $field_instances = array();
+  
+  // Exported field_instance: 'node-example_waiver-field_readonly_body'
+  $field_instances['node-example_waiver-field_readonly_body'] = array(
+    'bundle' => 'example_waiver',
+    'default_value' => array(
+      0 => array(
+        'value' => $statement,
+      ),
+    ),
+    'deleted' => 0,
+    'description' => '',
+    'display' => array(
+      'default' => array(
+        'label' => 'above',
+        'module' => 'text',
+        'settings' => array(),
+        'type' => 'text_default',
+        'weight' => -6,
+      ),
+      'teaser' => array(
+        'label' => 'above',
+        'settings' => array(),
+        'type' => 'hidden',
+        'weight' => 0,
+      ),
+    ),
+    'entity_type' => 'node',
+    'field_name' => 'field_readonly_body',
+    'label' => '',
+    'required' => 1,
+    'settings' => array(
+      'text_processing' => 0,
+      'user_register_form' => FALSE,
+    ),
+    'widget' => array(
+      'active' => 1,
+      'module' => 'text',
+      'settings' => array(
+        'rows' => 5,
+      ),
+      'type' => 'text_textarea',
+      'weight' => -6,
+    ),
+  );
+  $numeric;
+  $date;
+  $textual;
+  $signature;
+  foreach ($fields as $key => $field) {
+    switch ($field['field_type']) {
+      case("date"):
+        $field_instances['node-example_waiver-field_date' . $date] = array(
+           'bundle' => 'example_waiver',
+           'deleted' => 0,
+           'description' => '',
+           'display' => array(
+             'default' => array(
+               'label' => 'above',
+               'module' => 'date',
+               'settings' => array(
+                 'format_type' => 'long',
+                 'fromto' => 'both',
+                 'multiple_from' => '',
+                 'multiple_number' => '',
+                 'multiple_to' => '',
+               ),
+               'type' => 'date_default',
+               'weight' => 5,
+             ),
+             'teaser' => array(
+               'label' => 'above',
+               'settings' => array(),
+               'type' => 'hidden',
+               'weight' => 0,
+             ),
+           ),
+           'entity_type' => 'node',
+           'field_name' => 'field_date',
+           'label' => $field['label'],
+           'required' => $field['is_requiered'],
+           'settings' => array(
+             'default_value' => 'now',
+             'default_value2' => 'same',
+             'default_value_code' => '',
+             'default_value_code2' => '',
+             'user_register_form' => FALSE,
+           ),
+           'widget' => array(
+             'active' => 1,
+             'module' => 'date',
+             'settings' => array(
+               'increment' => 15,
+               'input_format' => 'm/d/Y - H:i:s',
+               'input_format_custom' => '',
+               'label_position' => 'above',
+               'text_parts' => array(),
+               'year_range' => '-3:+3',
+             ),
+             'type' => 'date_text',
+             'weight' => 5,
+           ),
+         );
+        if (is_empty($date)) {
+          $date = 2;
+        }
+        else {
+          $date++;
+        }
+        
+       break; 
+       
+       case("integer"):
+       // Exported field_instance: 'node-example_waiver-field_numeric'
+        $field_instances['node-example_waiver-field_numeric' . $numeric] = array(
+          'bundle' => 'example_waiver',
+          'default_value' => NULL,
+          'deleted' => 0,
+          'description' => '',
+          'display' => array(
+            'default' => array(
+              'label' => 'above',
+              'module' => 'number',
+              'settings' => array(
+                'decimal_separator' => '.',
+                'prefix_suffix' => TRUE,
+                'scale' => 0,
+                'thousand_separator' => ' ',
+              ),
+              'type' => 'number_integer',
+              'weight' => 3,
+            ),
+            'teaser' => array(
+              'label' => 'above',
+              'settings' => array(),
+              'type' => 'hidden',
+              'weight' => 0,
+            ),
+          ),
+          'entity_type' => 'node',
+          'field_name' => 'field_numeric',
+          'label' => $field['label'],
+          'required' => $field['is_requiered'],
+          'settings' => array(
+            'max' => '',
+            'min' => '',
+            'prefix' => '',
+            'suffix' => '',
+            'user_register_form' => FALSE,
+          ),
+          'widget' => array(
+            'active' => 0,
+            'module' => 'number',
+            'settings' => array(),
+            'type' => 'number',
+            'weight' => 3,
+          ),
+        );
+         $numeric++;
+        break;
+
+       // Exported field_instance: 'node-example_waiver-field_personal_signature'
+      case("signature"):
+       $field_instances['node-example_waiver-field_personal_signature' . $signature] = array(
+         'bundle' => 'example_waiver',
+         'default_value' => array(
+           0 => array(
+             'data' => 'a:2:{s:4:"json";s:2:"[]";s:8:"filepath";s:43:"public://signaturefield//13853940068752.png";}',
+           ),
+         ),
+         'deleted' => 0,
+         'description' => '',
+         'display' => array(
+           'default' => array(
+             'label' => 'above',
+             'module' => 'signaturefield',
+             'settings' => array(),
+             'type' => 'signaturefield_formatter',
+             'weight' => 1,
+           ),
+           'teaser' => array(
+             'label' => 'above',
+             'settings' => array(),
+             'type' => 'hidden',
+             'weight' => 0,
+           ),
+         ),
+         'entity_type' => 'node',
+         'field_name' => 'field_personal_signature',
+         'label' => $field['label'],
+         'required' => $field['is_requiered'],
+         'settings' => array(
+           'user_register_form' => FALSE,
+         ),
+         'widget' => array(
+           'active' => 1,
+           'module' => 'signaturefield',
+           'settings' => array(
+             'color' => '000033',
+             'height' => 99,
+             'width' => 200,
+           ),
+           'type' => 'signaturefield_default',
+           'weight' => 2,
+         ),
+       );
+        $signature++;
+       break;
+
+
+       // Exported field_instance: 'node-example_waiver-field_textual'
+      case("text"):
+       $field_instances['node-example_waiver-field_textual' . $textual] = array(
+         'bundle' => 'example_waiver',
+         'default_value' => NULL,
+         'deleted' => 0,
+         'description' => '',
+         'display' => array(
+           'default' => array(
+             'label' => 'above',
+             'module' => 'text',
+             'settings' => array(),
+             'type' => 'text_default',
+             'weight' => 4,
+           ),
+           'teaser' => array(
+             'label' => 'above',
+             'settings' => array(),
+             'type' => 'hidden',
+             'weight' => 0,
+           ),
+         ),
+         'entity_type' => 'node',
+         'field_name' => 'field_textual' . $textual,
+         'label' => $field['label'],
+         'required' => $field['is_requiered'],
+         'settings' => array(
+           'text_processing' => 0,
+           'user_register_form' => FALSE,
+         ),
+         'widget' => array(
+           'active' => 1,
+           'module' => 'text',
+           'settings' => array(
+             'size' => 60,
+           ),
+           'type' => 'text_textfield',
+           'weight' => 4,
+         ),
+       );
+        if (empty($textual)) {
+          $textual = 2;
+        }
+        else {
+          $textual++;
+        }
+       break;
+    }
+  }
+  
+  // Exported field_instance: 'node-example_waiver-field_date'
+ 
+  // Translatables
+  // Included for use with string extractors like potx.
+  t('Date');
+  t('Numeric');
+  t('Personal signature');
+  t('Textual');
+  t('הצהרה');
+
+  return $field_instances;
+}
+
+/**
+ * Submit handler for "Add another field" button on form_example_tutorial_9().
+ *
+ * $form_state['num_fields'] tells the form builder function how many field
+ * fieldsets to build, so here we increment it.
+ *
+ * All elements of $form_state are persisted, so there's no need to use a
+ * particular key, like the old $form_state['storage']. We can just use
+ * $form_state['num_fields'].
+ */
+function _my_cc_block_1_add_field($form, &$form_state) {
+  // Everything in $form_state is persistent, so we'll just use
+  // $form_state['add_field']
+  $form_state['num_fields'] ++;
+
+  // Setting $form_state['rebuild'] = TRUE causes the form to be rebuilt again.
+  $form_state['rebuild'] = TRUE;
+}
+
+function _my_cc_block_1_remove_field($form, &$form_state) {
+  if ($form_state['num_fields'] > 1) {
+    $form_state['num_fields'] --;
+  }
+
+  // Setting $form_state['rebuild'] = TRUE causes the form to be rebuilt again.
+  $form_state['rebuild'] = TRUE;
+}

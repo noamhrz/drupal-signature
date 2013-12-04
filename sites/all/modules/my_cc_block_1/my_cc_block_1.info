@@ -6,5 +6,10 @@ package = "custom stuff"
 dependencies[] = ctools
 dependencies[] = views
 dependencies[] = less
+dependencies[] = date
+dependencies[] = features
+dependencies[] = number
+dependencies[] = signaturefield
+dependencies[] = text
 
 stylesheets[all][] = my_cc_block_1.css.less

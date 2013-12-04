@@ -58,7 +58,7 @@ function example_waiver_field_default_field_instances() {
         'text_parts' => array(),
         'year_range' => '-3:+3',
       ),
-      'type' => 'date_text',
+      'type' => 'date_popup',
       'weight' => 5,
     ),
   );
@@ -238,53 +238,12 @@ function example_waiver_field_default_field_instances() {
     ),
   );
 
-  // Exported field_instance: 'node-example_waiver-field_textual2'
-  $field_instances['node-example_waiver-field_textual2'] = array(
-    'bundle' => 'example_waiver',
-    'default_value' => NULL,
-    'deleted' => 0,
-    'description' => '',
-    'display' => array(
-      'default' => array(
-        'label' => 'above',
-        'module' => 'text',
-        'settings' => array(),
-        'type' => 'text_default',
-        'weight' => 6,
-      ),
-      'teaser' => array(
-        'label' => 'above',
-        'settings' => array(),
-        'type' => 'hidden',
-        'weight' => 0,
-      ),
-    ),
-    'entity_type' => 'node',
-    'field_name' => 'field_textual2',
-    'label' => 'Textual2',
-    'required' => 0,
-    'settings' => array(
-      'text_processing' => 0,
-      'user_register_form' => FALSE,
-    ),
-    'widget' => array(
-      'active' => 1,
-      'module' => 'text',
-      'settings' => array(
-        'size' => 60,
-      ),
-      'type' => 'text_textfield',
-      'weight' => 6,
-    ),
-  );
-
   // Translatables
   // Included for use with string extractors like potx.
   t('Date');
   t('Numeric');
   t('Personal signature');
   t('Textual');
-  t('Textual2');
   t('הצהרה');
 
   return $field_instances;

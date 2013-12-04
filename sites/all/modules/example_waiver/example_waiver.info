@@ -19,5 +19,4 @@ features[field_instance][] = node-example_waiver-field_numeric
 features[field_instance][] = node-example_waiver-field_personal_signature
 features[field_instance][] = node-example_waiver-field_readonly_body
 features[field_instance][] = node-example_waiver-field_textual
-features[field_instance][] = node-example_waiver-field_textual2
 features[node][] = example_waiver

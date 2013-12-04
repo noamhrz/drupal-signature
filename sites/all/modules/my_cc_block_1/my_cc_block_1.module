@@ -208,14 +208,19 @@ function _my_cc_block_1_field_instances($statement = '', $fields = array()) {
       'weight' => -6,
     ),
   );
-  $numeric;
-  $date;
-  $textual;
-  $signature;
+  
+  $fields_counter = array (
+    'text' => 1,
+    'integer' => 1,
+    'date' => 1,
+    'signature' => 1, 
+  );
+
   foreach ($fields as $key => $field) {
+    _my_cc_block_1_create_field_base($field, $fields_counter);
     switch ($field['field_type']) {
       case("date"):
-        $field_instances['node-example_waiver-field_date' . $date] = array(
+        $field_instances['node-example_waiver-field_date' . $fields_counter[$field['field_type']]] = array(
            'bundle' => 'example_waiver',
            'deleted' => 0,
            'description' => '',
@@ -241,7 +246,7 @@ function _my_cc_block_1_field_instances($statement = '', $fields = array()) {
              ),
            ),
            'entity_type' => 'node',
-           'field_name' => 'field_date',
+           'field_name' => 'field_date' . $fields_counter[$field['field_type']],
            'label' => $field['label'],
            'required' => $field['is_requiered'],
            'settings' => array(
@@ -265,19 +270,12 @@ function _my_cc_block_1_field_instances($statement = '', $fields = array()) {
              'type' => 'date_text',
              'weight' => 5,
            ),
-         );
-        if (is_empty($date)) {
-          $date = 2;
-        }
-        else {
-          $date++;
-        }
-        
+         ); 
        break; 
        
        case("integer"):
        // Exported field_instance: 'node-example_waiver-field_numeric'
-        $field_instances['node-example_waiver-field_numeric' . $numeric] = array(
+        $field_instances['node-example_waiver-field_numeric' . $fields_counter[$field['field_type']]] = array(
           'bundle' => 'example_waiver',
           'default_value' => NULL,
           'deleted' => 0,
@@ -303,7 +301,7 @@ function _my_cc_block_1_field_instances($statement = '', $fields = array()) {
             ),
           ),
           'entity_type' => 'node',
-          'field_name' => 'field_numeric',
+          'field_name' => 'field_numeric' . $fields_counter[$field['field_type']],
           'label' => $field['label'],
           'required' => $field['is_requiered'],
           'settings' => array(
@@ -321,12 +319,11 @@ function _my_cc_block_1_field_instances($statement = '', $fields = array()) {
             'weight' => 3,
           ),
         );
-         $numeric++;
         break;
 
        // Exported field_instance: 'node-example_waiver-field_personal_signature'
       case("signature"):
-       $field_instances['node-example_waiver-field_personal_signature' . $signature] = array(
+       $field_instances['node-example_waiver-field_personal_signature' . $fields_counter[$field['field_type']]] = array(
          'bundle' => 'example_waiver',
          'default_value' => array(
            0 => array(
@@ -351,7 +348,7 @@ function _my_cc_block_1_field_instances($statement = '', $fields = array()) {
            ),
          ),
          'entity_type' => 'node',
-         'field_name' => 'field_personal_signature',
+         'field_name' => 'field_personal_signature' . $fields_counter[$field['field_type']],
          'label' => $field['label'],
          'required' => $field['is_requiered'],
          'settings' => array(
@@ -369,13 +366,12 @@ function _my_cc_block_1_field_instances($statement = '', $fields = array()) {
            'weight' => 2,
          ),
        );
-        $signature++;
        break;
 
 
        // Exported field_instance: 'node-example_waiver-field_textual'
       case("text"):
-       $field_instances['node-example_waiver-field_textual' . $textual] = array(
+       $field_instances['node-example_waiver-field_textual' . $fields_counter[$field['field_type']]] = array(
          'bundle' => 'example_waiver',
          'default_value' => NULL,
          'deleted' => 0,
@@ -396,7 +392,7 @@ function _my_cc_block_1_field_instances($statement = '', $fields = array()) {
            ),
          ),
          'entity_type' => 'node',
-         'field_name' => 'field_textual' . $textual,
+         'field_name' => 'field_textual' . $fields_counter[$field['field_type']],
          'label' => $field['label'],
          'required' => $field['is_requiered'],
          'settings' => array(
@@ -413,20 +409,15 @@ function _my_cc_block_1_field_instances($statement = '', $fields = array()) {
            'weight' => 4,
          ),
        );
-        if (empty($textual)) {
-          $textual = 2;
-        }
-        else {
-          $textual++;
-        }
-       break;
     }
+    $fields_counter[$field['field_type']]++;
   }
   
   // Exported field_instance: 'node-example_waiver-field_date'
  
   // Translatables
   // Included for use with string extractors like potx.
+  
   t('Date');
   t('Numeric');
   t('Personal signature');
@@ -462,4 +453,120 @@ function _my_cc_block_1_remove_field($form, &$form_state) {
 
   // Setting $form_state['rebuild'] = TRUE causes the form to be rebuilt again.
   $form_state['rebuild'] = TRUE;
+}
+
+/**
+ * Implements hook_field_default_field_bases().
+ */
+function _my_cc_block_1_create_field_base($field, $fields_counter) {
+  
+  $fields_counter[$field['field_type']];
+  $field_bases = array();
+
+  switch ($field['field_type']) {
+    // Exported field_base: 'field_date'
+    case('date'): 
+    $field_bases['field_date' . $fields_counter[$field['field_type']]] = array(
+      'active' => 1,
+      'cardinality' => 1,
+      'deleted' => 0,
+      'entity_types' => array(),
+      'field_name' => 'field_date' . $fields_counter[$field['field_type']],
+      'foreign keys' => array(),
+      'indexes' => array(),
+      'locked' => 0,
+      'module' => 'date',
+      'settings' => array(
+        'cache_count' => 4,
+        'cache_enabled' => 0,
+        'granularity' => array(
+          'day' => 'day',
+          'hour' => 0,
+          'minute' => 0,
+          'month' => 'month',
+          'second' => 0,
+          'year' => 'year',
+        ),
+        'timezone_db' => '',
+        'todate' => '',
+        'tz_handling' => 'none',
+      ),
+      'translatable' => 0,
+      'type' => 'datetime',
+    );
+    break;
+  
+  case('integer'):
+  // Exported field_base: 'field_numeric'
+    $field_bases['field_numeric' . $fields_counter[$field['field_type']]] = array(
+      'active' => 1,
+      'cardinality' => 1,
+      'deleted' => 0,
+      'entity_types' => array(),
+      'field_name' => 'field_numeric' . $fields_counter[$field['field_type']],
+      'foreign keys' => array(),
+      'indexes' => array(),
+      'locked' => 0,
+      'module' => 'number',
+      'settings' => array(),
+      'translatable' => 0,
+      'type' => 'number_integer',
+    );
+    break;
+
+  // Exported field_base: 'field_personal_signature'
+  case('signature'):
+    $field_bases['field_personal_signature' . $fields_counter[$field['field_type']]] = array(
+      'active' => 1,
+      'cardinality' => 1,
+      'deleted' => 0,
+      'entity_types' => array(),
+      'field_name' => 'field_personal_signature' . $fields_counter[$field['field_type']],
+      'foreign keys' => array(),
+      'indexes' => array(),
+      'locked' => 0,
+      'module' => 'signaturefield',
+      'settings' => array(),
+      'translatable' => 0,
+      'type' => 'signaturefield',
+    );
+    break;
+
+  // Exported field_base: 'field_textual'
+    case('text'):
+      $field_bases['field_textual' . $fields_counter[$field['field_type']]] = array(
+        'active' => 1,
+        'cardinality' => 1,
+        'deleted' => 0,
+        'entity_types' => array(),
+        'field_name' => 'field_textual' . $fields_counter[$field['field_type']],
+        'foreign keys' => array(
+          'format' => array(
+            'columns' => array(
+              'format' => 'format',
+            ),
+            'table' => 'filter_format',
+          ),
+        ),
+        'indexes' => array(
+          'format' => array(
+            0 => 'format',
+          ),
+        ),
+        'locked' => 0,
+        'module' => 'text',
+        'settings' => array(
+          'max_length' => 255,
+        ),
+        'translatable' => 0,
+        'type' => 'text',
+      );
+      break;
+  }
+  
+  foreach ($field_bases as $key => $field) {
+    if(!field_info_field($key)){
+      field_create_field($field);
+    }
+  }
 }

@@ -119,7 +119,7 @@ function _my_cc_block_1_new_waiver_form($form, &$form_state) {
       '#limit_validation_errors' => array(),
     );
   }
-  
+  dpm(node_type_get_names());
   return $form;
 }
 
@@ -133,19 +133,11 @@ function _my_cc_block_1_new_waiver_form_validate($form, &$form_state) {
 }
 
 function _my_cc_block_1_new_waiver_form_submit($form, &$form_state) {
- /**
-  $output = t("Content type name: @cc_name;<br/> Declaration: @declaration;<br/>", array('@cc_name' => $form_state['values']['waiver_name'], '@declaration' => $form_state['values']['statement']));
-  for ($i = 1; $i <= $form_state['num_fields']; $i++) {
-    $output .= t("@num: label: @label, Requiered: @is_requiered, Type(@type)", array('@num' => $i, '@label' => $form_state['values']['field'][$i]['label'],
-      '@is_requiered' => $form_state['values']['field'][$i]['is_requiered'], '@type' => $form_state['values']['field'][$i]['field_type']));
-  }
-  drupal_set_message($output);
-  */
-  
+
   $waiver_name = $form_state['values']['waiver_name'];
   $statement = $form_state['values']['statement'];
   $fields = $form_state['values']['field'];
-
+  
   // machine name of the content type
   $name = 'waiver_' . $waiver_name;
 
@@ -160,7 +152,6 @@ function _my_cc_block_1_new_waiver_form_submit($form, &$form_state) {
   );
 
   node_type_save($new_node);
-
   // create all the instances for our fields
   foreach (_my_cc_block_1_field_instances($statement, $fields) /* See notes below. */ as $instance) {
     $instance['entity_type'] = 'node';
@@ -170,8 +161,8 @@ function _my_cc_block_1_new_waiver_form_submit($form, &$form_state) {
 }
 
 function _my_cc_block_1_field_instances($statement = '', $fields = array()) {
-  $field_instances = array();
   
+  $field_instances = array();
   // Exported field_instance: 'node-example_waiver-field_readonly_body'
   $field_instances['node-example_waiver-field_readonly_body'] = array(
     'bundle' => 'example_waiver',
@@ -463,7 +454,7 @@ function _my_cc_block_1_remove_field($form, &$form_state) {
 }
 
 /**
- * Implements hook_field_default_field_bases().
+ * Create thr field if it doesn't exist.
  */
 function _my_cc_block_1_create_field_base($field, $fields_counter) {
   

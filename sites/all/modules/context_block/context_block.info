@@ -1,0 +1,10 @@
+name = Context block
+description = custimzation for my site
+core = 7.x
+
+package = "custom stuff"
+dependencies[] = ctools
+dependencies[] = views
+dependencies[] = less
+
+stylesheets[all][] = context_block.css.less

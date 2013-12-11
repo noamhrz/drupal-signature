@@ -3,9 +3,9 @@
 /**
  * Declaring the block.
  */
-function my_cc_block_block_info() {
+function context_block_block_info() {
   $blocks['new_waiver'] = array(
-    'info' => t('New waiver block'),
+    'info' => t('Conntext block'),
   );
   return $blocks;
 }
@@ -13,12 +13,12 @@ function my_cc_block_block_info() {
 /**
  * Implementation of hook_block_view().
  */
-function my_cc_block_block_view($delta = '') {
+function context_block_block_view($delta = '') {
   $block = array();
   switch ($delta) {
     case 'new_waiver':
       $block['subject'] = t('Protect your business by waiver');
-      $block['content'] = drupal_get_form('_my_cc_block_new_waiver_form');
+      $block['content'] = drupal_get_form('_context_block_new_waiver_form');
       break;
   }
   return $block;
@@ -27,16 +27,20 @@ function my_cc_block_block_view($delta = '') {
 /**
  * Define a form for creating new waiver content type.
  */
-function _my_cc_block_new_waiver_form($form, &$form_state) {
+function _context_block_new_waiver_form($form, &$form_state) {
   // Waiver name field.
   // TODO make this field appear only if the context is empty.
 
-    
+    $node = node_load(arg(1)); // You have to set the node load to a variable.
+    dpm($node);
+    dpm('noam');
+    $form['#prefix'] = $node->body['und'][0]['value'];
     $form['waiver_name'] = array(
     '#type' => 'textfield',
     '#required' => TRUE,
     '#title' => t("Your new Waiver name"),
     '#description' => t('Must be a unique name'),
+    '#value' => t($node->title),
     );
 
     // Waiver statement field
@@ -45,6 +49,13 @@ function _my_cc_block_new_waiver_form($form, &$form_state) {
     '#required' => TRUE,
     '#title' => t("Your statement for the waiver"),
     '#description' => t('what your customer will sign about'),
+    );
+    
+    $form['signature'] = array(
+    '#title' => 'Signature',
+    '#type' => 'signaturefield',
+    '#color' => '#0f0',
+    '#required' => TRUE,
     );
 
     $form['submit'] = array(
@@ -61,7 +72,7 @@ function _my_cc_block_new_waiver_form($form, &$form_state) {
  * automatically call when the submit button is pressed.
  */
 
-function _my_cc_block_new_waiver_form_validate($form, &$form_state) {
+function _context_block_new_waiver_form_validate($form, &$form_state) {
 
   $waiver_name = $form_state['values']['waiver_name'];
 
@@ -76,34 +87,11 @@ function _my_cc_block_new_waiver_form_validate($form, &$form_state) {
  * automatically call when submit is pressed (and all validators pass)
  */
 
-function _my_cc_block_new_waiver_form_submit($form, &$form_state) {
-  $waiver_name = $form_state['values']['waiver_name'];
-  $statement = $form_state['values']['statement'];
-
-  // machine name of the content type
-  $name = 'waiver_' . $waiver_name;
-
-  // define the node type
-  $new_node = array(
-    'type' => $name,
-    'name' => $name,
-    'base' => 'node_content',
-    'title_label' => t(' name'),
-    'description' => t('simple waiver'),
-    'custom' => TRUE,
-  );
-
-  node_type_save($new_node);
-
-  // create all the instances for our fields
-  foreach (_my_cc_block_field_instances($statement) /* See notes below. */ as $instance) {
-    $instance['entity_type'] = 'node';
-    $instance['bundle'] = $name;
-    field_create_instance($instance);
-  }
+function _context_block_new_waiver_form_submit($form, &$form_state) {
+  
 }
 
-function _my_cc_block_field_instances($statement = '') {
+function _context_block_field_instances($statement = '') {
   $field_instances = array();
 
   // Exported field_instance: 'node-example_waiver-field_readonly_body'
